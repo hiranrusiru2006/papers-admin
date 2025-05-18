@@ -1,105 +1,575 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - Google Sheet Manager</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up with Firebase</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo i {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .logo h1 {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: var(--dark);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background-color: var(--light);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            background-color: white;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeIn 0.3s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-success {
+            background-color: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid var(--success);
+            color: #0c5460;
+        }
+
+        .alert-danger {
+            background-color: rgba(247, 37, 133, 0.1);
+            border-left: 4px solid var(--danger);
+            color: #721c24;
+        }
+
+        .alert-icon {
+            margin-right: 12px;
+            font-size: 1.3rem;
+        }
+
+        .alert-message {
+            flex: 1;
+        }
+
+        .close-alert {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-left: 10px;
+        }
+
+        .password-strength {
+            height: 4px;
+            background-color: var(--light-gray);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .strength-meter {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .terms {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .terms a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .terms a:hover {
+            text-decoration: underline;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--gray);
+        }
+
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Dark mode */
+        .dark-mode {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+        }
+
+        .dark-mode .card {
+            background-color: #16213e;
+            color: #e6e6e6;
+        }
+
+        .dark-mode .form-control {
+            background-color: #0f3460;
+            border-color: #1a1a2e;
+            color: #e6e6e6;
+        }
+
+        .dark-mode .form-control:focus {
+            background-color: #0f3460;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+
+        .dark-mode .form-label {
+            color: #e6e6e6;
+        }
+
+        .dark-mode .input-icon {
+            color: #a1a1a1;
+        }
+
+        .dark-mode .terms {
+            color: #a1a1a1;
+        }
+
+        .dark-mode .login-link {
+            color: #a1a1a1;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 1.5rem;
+            z-index: 100;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 576px) {
+            .card {
+                padding: 30px 20px;
+            }
+            
+            .card-title {
+                font-size: 1.3rem;
+                margin-bottom: 25px;
+            }
+            
+            .form-control {
+                padding: 12px 15px;
+            }
+            
+            .btn {
+                padding: 14px 20px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-r from-gray-900 to-gray-800 text-white min-h-screen flex items-center justify-center p-4">
-  <div class="bg-gray-950 p-6 rounded-2xl shadow-2xl max-w-md w-full space-y-6">
-    <h1 class="text-2xl font-bold text-center text-cyan-400">Google Sheet Admin Panel</h1>
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
 
-    <div class="space-y-4">
-      <div>
-        <label class="block mb-1">Video ID:</label>
-        <input id="videoID" type="text" class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="video1" />
-      </div>
-      <div>
-        <label class="block mb-1">Email:</label>
-        <input id="email" type="email" class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="email@example.com" />
-      </div>
-
-      <button onclick="addEmail()" class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white transition">Add Email to One Video</button>
-      <button onclick="removeEmail()" class="w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white transition">Remove Email from One Video</button>
-      <button onclick="removeEmailFromAll()" class="w-full bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-white transition">Remove Email from All Videos</button>
-      <button onclick="addEmailToAll()" class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-white transition">Add Email to All Videos</button>
-      <button onclick="loadEmails()" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white transition">Load Emails for Video</button>
-
-      <div>
-        <label class="block mt-4 mb-1">Current Emails:</label>
-        <textarea id="emailsList" readonly class="w-full h-32 px-3 py-2 rounded bg-gray-800 text-white focus:outline-none"></textarea>
-      </div>
+    <div class="container">
+        <div class="card">
+            <div class="logo">
+                <i class="fas fa-user-shield"></i>
+                <h1>Create Account</h1>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-control" required placeholder="your@email.com">
+                    <i class="fas fa-envelope input-icon"></i>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" required placeholder="At least 6 characters">
+                    <i class="fas fa-lock input-icon"></i>
+                    <div class="password-strength">
+                        <div class="strength-meter" id="strengthMeter"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="form-control" required placeholder="Re-enter your password">
+                    <i class="fas fa-lock input-icon"></i>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="signupBtn">
+                    <span id="signupText">Sign Up</span>
+                    <span id="signupLoader" class="loading" style="display: none;"></span>
+                </button>
+                
+                <div class="terms">
+                    By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div id="status" class="text-center mt-4 text-sm text-gray-400"></div>
-  </div>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPOuGGS4qsr5zVPQ1VHpoR8nhH3vCzmZQ",
+            authDomain: "papers-c2896.firebaseapp.com",
+            projectId: "papers-c2896",
+            storageBucket: "papers-c2896.appspot.com",
+            messagingSenderId: "47024744690",
+            appId: "1:47024744690:web:b58507723961582d6f086b"
+        };
 
-  <div id="preloader" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50 hidden">
-    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-cyan-400"></div>
-  </div>
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbx_hu4PwVFo2KYMKBH-nIh4GhO1S52ixASO4AAI2Dry3YekWxN8vR4J2peFSdSmaSY/exec"; // Replace with your deployed script URL
+        // DOM elements
+        const signupForm = document.getElementById('signupForm');
+        const signupBtn = document.getElementById('signupBtn');
+        const signupText = document.getElementById('signupText');
+        const signupLoader = document.getElementById('signupLoader');
+        const alertContainer = document.getElementById('alertContainer');
+        const passwordInput = document.getElementById('password');
+        const strengthMeter = document.getElementById('strengthMeter');
+        const themeToggle = document.getElementById('themeToggle');
 
-    function showPreloader(show) {
-      document.getElementById("preloader").classList.toggle("hidden", !show);
-    }
+        // Theme toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const icon = themeToggle.querySelector('i');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
 
-    function showStatus(message, color = "text-cyan-400") {
-      const status = document.getElementById("status");
-      status.className = `text-center mt-4 text-sm ${color}`;
-      status.textContent = message;
-    }
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            // Remove existing alerts
+            while (alertContainer.firstChild) {
+                alertContainer.removeChild(alertContainer.firstChild);
+            }
+            
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} alert-icon"></i>
+                <div class="alert-message">${message}</div>
+                <button class="close-alert">&times;</button>
+            `;
+            alertContainer.appendChild(alert);
+            
+            // Close button functionality
+            alert.querySelector('.close-alert').addEventListener('click', () => {
+                alert.remove();
+            });
+            
+            // Remove alert after 5 seconds
+            setTimeout(() => {
+                if (alert.parentNode === alertContainer) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
 
-    async function addEmail() {
-      const email = document.getElementById("email").value;
-      const videoID = document.getElementById("videoID").value;
-      if (!email || !videoID) return;
-      showPreloader(true);
-      const res = await fetch(`${scriptURL}?action=addEmail&email=${email}&video=${videoID}`, { method: "POST" });
-      showPreloader(false);
-      showStatus(await res.text(), "text-green-400");
-    }
+        // Password strength indicator
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            let strength = 0;
+            
+            // Length check
+            if (password.length >= 6) strength += 20;
+            if (password.length >= 8) strength += 20;
+            
+            // Character diversity
+            if (/[A-Z]/.test(password)) strength += 20;
+            if (/[0-9]/.test(password)) strength += 20;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+            
+            // Update meter
+            strengthMeter.style.width = `${strength}%`;
+            
+            // Color coding
+            if (strength < 40) {
+                strengthMeter.style.backgroundColor = 'var(--danger)';
+            } else if (strength < 80) {
+                strengthMeter.style.backgroundColor = 'var(--warning)';
+            } else {
+                strengthMeter.style.backgroundColor = 'var(--success)';
+            }
+        });
 
-    async function removeEmail() {
-      const email = document.getElementById("email").value;
-      const videoID = document.getElementById("videoID").value;
-      if (!email || !videoID) return;
-      showPreloader(true);
-      const res = await fetch(`${scriptURL}?action=removeEmail&email=${email}&video=${videoID}`, { method: "POST" });
-      showPreloader(false);
-      showStatus(await res.text(), "text-red-400");
-    }
+        // Form validation
+        function validateForm() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Email validation
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showAlert('Please enter a valid email address', 'danger');
+                return false;
+            }
+            
+            // Password validation
+            if (password.length < 6) {
+                showAlert('Password must be at least 6 characters', 'danger');
+                return false;
+            }
+            
+            // Password match
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match', 'danger');
+                return false;
+            }
+            
+            return true;
+        }
 
-    async function removeEmailFromAll() {
-      const email = document.getElementById("email").value;
-      if (!email) return;
-      showPreloader(true);
-      const res = await fetch(`${scriptURL}?action=removeEmailFromAll&email=${email}`, { method: "POST" });
-      showPreloader(false);
-      showStatus(await res.text(), "text-yellow-400");
-    }
+        // Sign up new user
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                // Show loading state
+                signupText.textContent = 'Creating Account...';
+                signupLoader.style.display = 'inline-block';
+                signupBtn.disabled = true;
+                
+                // Create user with email and password
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                
+                // Send email verification (optional)
+                await userCredential.user.sendEmailVerification();
+                
+                // Show success message
+                showAlert('Account created successfully! Please Contact Your Tutor For Next Steps.', 'success');
+                
+                // Reset form
+                signupForm.reset();
+                strengthMeter.style.width = '0%';
+                
+            } catch (error) {
+                let errorMessage = 'An error occurred during registration.';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'This email is already registered.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Please enter a valid email address.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Password should be at least 6 characters.';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = 'Email/password accounts are not enabled.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Too many requests. Please try again later.';
+                        break;
+                    default:
+                        errorMessage = error.message;
+                }
+                
+                showAlert(errorMessage, 'danger');
+            } finally {
+                // Reset button state
+                signupText.textContent = 'Sign Up';
+                signupLoader.style.display = 'none';
+                signupBtn.disabled = false;
+            }
+        });
 
-    async function addEmailToAll() {
-      const email = document.getElementById("email").value;
-      if (!email) return;
-      showPreloader(true);
-      const res = await fetch(`${scriptURL}?action=addEmailToAll&email=${email}`, { method: "POST" });
-      showPreloader(false);
-      showStatus(await res.text(), "text-purple-400");
-    }
-
-    async function loadEmails() {
-      const videoID = document.getElementById("videoID").value;
-      if (!videoID) return;
-      showPreloader(true);
-      const res = await fetch(`${scriptURL}?action=getEmails&video=${videoID}`);
-      const emails = await res.text();
-      document.getElementById("emailsList").value = emails;
-      showPreloader(false);
-      showStatus("Emails loaded.", "text-blue-400");
-    }
-  </script>
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is already authenticated (optional)
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // User is signed in (redirect or show message)
+                    // window.location.href = 'dashboard.html';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
